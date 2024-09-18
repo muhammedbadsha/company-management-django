@@ -9,7 +9,7 @@ from role.models import Role
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, date_of_birth, password=None):
+    def create_user(self, email, first_name, password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -19,7 +19,7 @@ class MyUserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
-            date_of_birth=date_of_birth,
+            first_name=first_name,
         )
 
         user.set_password(password)
@@ -42,11 +42,12 @@ class MyUserManager(BaseUserManager):
 
 
 class MyUser(AbstractBaseUser):
-    user_id = models.TextField(null=False, blank=False, max_length=18)
-    first_name = models.TextField(max_length=50)
-    last_name = models.TextField(null=True, blank=True, max_length=50)
+    id = models.AutoField(primary_key=True)
+    user_id = models.CharField(null=False, blank=False, max_length=18)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(null=True, blank=True, max_length=50)
     
-    companys = models.ForeignKey(Company, on_delete=models.CASCADE)
+    companys = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
     email = models.EmailField(
         verbose_name="email address",
@@ -54,17 +55,18 @@ class MyUser(AbstractBaseUser):
         unique=True,
     )
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
-    salary = models.DecimalField(max_digits=10,decimal_places=2)
-    date_joined = models.DateField()
+    salary = models.DecimalField(max_digits=10,decimal_places=2,null=True)
+    date_joined = models.DateField(null=True)
     last_login = models.DateTimeField(null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
 
+
     objects = MyUserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["date_of_birth"]
+    REQUIRED_FIELDS = ["first_name"]
 
     def __str__(self):
         return self.email

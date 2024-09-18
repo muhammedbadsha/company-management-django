@@ -1,7 +1,9 @@
 from django.db import models
-from companys.models import Company
+from departments.models import Department
 # Create your models here.
 
 class Role(models.Model):
-    name = models.CharField(max_length=255)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    role = models.CharField(max_length=255)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE,null=True)
+    def __str__(self) -> str:
+        return self.role
