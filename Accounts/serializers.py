@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from .models import MyUser
 from companys.models import Company
+from django.contrib.auth.hashers import make_password
 import uuid
 
 
@@ -31,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
     # def update(self, instance, validated_data):
     def update(self, instance, validated_data):
         # Update the instance with validated data
-        print('Updating user instance...')
+        
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.companys = validated_data.get('companys', instance.companys)
@@ -44,8 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-    def patch(self, instace):
-        pass
+   
     
 
 class LoginSerializer(serializers.Serializer):
@@ -61,6 +61,7 @@ class LoginSerializer(serializers.Serializer):
         # Get the user associated with this company and user_id
         try:
             user = MyUser.objects.get(companys=companys, user_id=user_id)
+            
         except MyUser.DoesNotExist:
             raise AuthenticationFailed('User not found')
 
@@ -71,3 +72,25 @@ class LoginSerializer(serializers.Serializer):
         # Return user if validation passed
         data['user'] = user
         return data
+    
+
+class PasswordResetSendLinkSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    def validate_email(self, value):
+        try:
+            user = MyUser.objects.get(email=value)
+        except MyUser.DoesNotExist:
+            raise serializers.ValidationError("There is no user with this email address.")
+        return value
+    
+
+class PasswordResetSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=5)
+    # def validate_password(self, value):
+    #     return make_password(value)
+    def save(self, user):
+        password = self.validated_data['password']
+        
+        user.set_password(password)
+        user.save()
+        return user
